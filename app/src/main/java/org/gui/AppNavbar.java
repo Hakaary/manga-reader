@@ -4,11 +4,15 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 class AppNavbar {
 
     private final JPanel navbarPanel;
+
+    private final JComboBox cbChapter;
+    private boolean runCbChapterFunc;
 
     private final JLabel txtChapter;
     private final JLabel txtPage;
@@ -21,7 +25,9 @@ class AppNavbar {
         navbarPanel = new JPanel();
         navbarPanel.setBackground(Color.GRAY);
 
-        txtChapter = new JLabel("Chapter: ");
+        txtChapter = new JLabel("Chapter:");
+        cbChapter = new JComboBox();
+        runCbChapterFunc = true;
         txtPage = new JLabel();
 
         buttonClose = new JButton("Close");
@@ -29,6 +35,7 @@ class AppNavbar {
         buttonNext = new JButton("Next >");
 
         navbarPanel.add(txtChapter);
+        navbarPanel.add(cbChapter);
         navbarPanel.add(buttonClose);
         navbarPanel.add(buttonPrevious);
         navbarPanel.add(buttonNext);
@@ -39,12 +46,32 @@ class AppNavbar {
         return navbarPanel;
     }
 
-    public void setTxtChapter(int chapter) {
-        txtChapter.setText("Chapter: " + chapter);
+    public void setNewChapter(int chapter) {
+        cbChapter.addItem(chapter);
     }
 
     public void setTxtPage(int page, int totalPages) {
         txtPage.setText(page + "/" + totalPages);
+    }
+
+    public void setCurrentChapterCbBox(int chapter, boolean triggerFunc) {
+        runCbChapterFunc = triggerFunc;
+        cbChapter.setSelectedItem(chapter);
+        runCbChapterFunc = true;
+    }
+
+    public Integer getCurrentSelectedChapter() {
+        return (Integer) cbChapter.getItemAt(cbChapter.getSelectedIndex());
+    }
+
+    public void setCbChapterFunc(Runnable function) {
+        cbChapter.addItemListener(
+                _ -> {
+                    if (runCbChapterFunc) {
+                        function.run();
+                    }
+                }
+        );
     }
 
     public void setButtonCloseFunc(Runnable function) {

@@ -33,40 +33,64 @@ public class AppFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         this.pageManager = pageManager;
-        setButtonFuncs();
+        setFuncs();
+    }
+
+    public void setNewChapter(int chapter) {
+        navbar.setNewChapter(chapter);
+    }
+
+    public void setChapter(int chapter) {
+        pageManager.setCurrentChapter(chapter);
+    }
+
+    public Integer getCurrentSelectedChapter() {
+        return navbar.getCurrentSelectedChapter();
     }
 
     public void setCurrentImage() {
         imageDisplay.setCurrentImage(pageManager.getCurrentPage());
     }
 
-    public void setTxtChapter(int chapter) {
-        navbar.setTxtChapter(chapter);
-    }
-
     public void setTxtPage(int page, int totalPages) {
         navbar.setTxtPage(page, totalPages);
     }
 
-    private void setButtonFuncs() {
+    public void setCurrentChapterCbBox(int chapter, boolean triggerFunc) {
+        navbar.setCurrentChapterCbBox(chapter, triggerFunc);
+    }
+
+    private void setFuncs() {
         navbar.setButtonPreviousFunc(() -> {
             pageManager.setPrevPage();
-            setCurrentImage();
-            setTxtChapter(pageManager.getCurrentChapter());
+            setCurrentChapterCbBox(pageManager.getCurrentChapter(), false);
             setTxtPage(
-                pageManager.getCurrentPageIdx() + 1,
-                pageManager.getNumPagesCurrentChapter()
+                    pageManager.getCurrentPageIdx() + 1,
+                    pageManager.getNumPagesCurrentChapter()
             );
+            setCurrentImage();
         });
 
         navbar.setButtonNextFunc(() -> {
             pageManager.setNextPage();
-            setCurrentImage();
-            setTxtChapter(pageManager.getCurrentChapter());
+            setCurrentChapterCbBox(pageManager.getCurrentChapter(), false);
             setTxtPage(
-                pageManager.getCurrentPageIdx() + 1,
-                pageManager.getNumPagesCurrentChapter()
+                    pageManager.getCurrentPageIdx() + 1,
+                    pageManager.getNumPagesCurrentChapter()
             );
+            setCurrentImage();
+        });
+
+        navbar.setCbChapterFunc(() -> {
+            pageManager.setCurrentChapter(
+                    getCurrentSelectedChapter()
+            );
+            pageManager.setCurrentPageIdx(0);
+            setTxtPage(
+                    pageManager.getCurrentPageIdx() + 1,
+                    pageManager.getNumPagesCurrentChapter()
+            );
+            setCurrentImage();
         });
     }
 

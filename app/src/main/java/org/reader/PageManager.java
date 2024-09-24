@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-public class PageManager {
+public final class PageManager {
 
     private int currentChapter;
     private String currentPageDir;
@@ -21,13 +21,10 @@ public class PageManager {
     public PageManager(File dir) {
         images = Reader.getChaptersPages(dir);
 
-        ArrayList<Integer> keys = new ArrayList(images.keySet());
-        keys.sort((int1, int2) -> {
-            return int1.compareTo(int2);
-        });
-        currentChapter = keys.get(0);
+        Object[] chapters = getAllChapters();
+        currentChapter = (Integer) chapters[0];
         currentPageIdx = 0;
-        currentPageDir = this.images.get(
+        currentPageDir = images.get(
                 currentChapter
         ).get(
                 currentPageIdx
@@ -37,13 +34,10 @@ public class PageManager {
     public PageManager(HashMap<Integer, ArrayList<String>> images) {
         this.images = images;
 
-        ArrayList<Integer> keys = new ArrayList(images.keySet());
-        keys.sort((int1, int2) -> {
-            return int1.compareTo(int2);
-        });
-        currentChapter = keys.get(0);
+        Object[] chapters = getAllChapters();
+        currentChapter = (Integer) chapters[0];
         currentPageIdx = 0;
-        currentPageDir = this.images.get(
+        currentPageDir = images.get(
                 currentChapter
         ).get(
                 currentPageIdx
@@ -51,60 +45,65 @@ public class PageManager {
     }
 
     public void setPrevPage() {
-        try {
-            currentPageIdx--;
-            currentPageDir = this.images.get(currentChapter).get(
+        currentPageIdx--;
+
+        // Obvious case, page exists
+        if (currentPageIdx >= 0) {
+            currentPageDir = images.get(currentChapter).get(
                     currentPageIdx
             );
-        } catch (IndexOutOfBoundsException e) {
-            currentChapter--;
-            try {
-                currentPageIdx = this.images.get(
-                        this.currentChapter
-                ).size() - 1;
-            } catch (NullPointerException d) {
-                currentChapter++;
-                currentPageIdx = 0;
-            }
-            currentPageDir = this.images.get(
-                    currentChapter
-            ).get(
-                    currentPageIdx
-            );
+            return;
         }
+
+        currentChapter--;
+
+        // First downloaded chapter
+        if (images.get(currentChapter) == null) {
+            currentChapter++;
+            currentPageIdx = 0;
+            return;
+        }
+
+        // Last page of the previous chapter
+        currentPageIdx = images.get(currentChapter).size() - 1;
+        currentPageDir = images.get(currentChapter).get(
+                currentPageIdx
+        );
     }
 
     public void setNextPage() {
-        try {
-            currentPageIdx++;
-            currentPageDir = this.images.get(currentChapter).get(
+        currentPageIdx++;
+
+        // Obvious case, page exists
+        if (currentPageIdx < images.get(currentChapter).size()) {
+            currentPageDir = images.get(currentChapter).get(
                     currentPageIdx
             );
-        } catch (IndexOutOfBoundsException e) {
-            currentChapter++;
-            currentPageIdx = 0;
-            try {
-                currentPageDir = images.get(
-                        currentChapter
-                ).get(
-                        currentPageIdx
-                );
-            } catch (NullPointerException d) {
-                currentChapter--;
-                currentPageIdx = images.get(
-                        currentChapter
-                ).size() - 1;
-                currentPageDir = images.get(
-                        currentChapter
-                ).get(
-                        currentPageIdx
-                );
-            }
+            return;
         }
+
+        currentChapter++;
+
+        // Last downloaded chapter
+        if (images.get(currentChapter) == null) {
+            currentChapter--;
+            currentPageIdx = images.get(currentChapter).size() - 1;
+            return;
+        }
+
+        // First page of the next chapter
+        currentPageIdx = 0;
+        currentPageDir = images.get(currentChapter).get(
+                currentPageIdx
+        );
     }
 
     public String getCurrentPageDir() {
         return currentPageDir;
+    }
+
+    public void setCurrentPageIdx(int currentPageIdx) {
+        this.currentPageIdx = currentPageIdx;
     }
 
     public int getCurrentPageIdx() {
@@ -112,9 +111,19 @@ public class PageManager {
     }
 
     public int getNumPagesCurrentChapter() {
-        return this.images.get(
+        return images.get(
                 currentChapter
         ).size();
+    }
+
+    public void setCurrentChapter(int currentChapter) {
+        this.currentChapter = currentChapter;
+        currentPageIdx = 0;
+        currentPageDir = images.get(
+                currentChapter
+        ).get(
+                currentPageIdx
+        );
     }
 
     public int getCurrentChapter() {
@@ -135,6 +144,14 @@ public class PageManager {
             System.exit(1);
         }
         return currentPage;
+    }
+
+    public Object[] getAllChapters() {
+        ArrayList<Integer> allChapters = new ArrayList(images.keySet());
+        allChapters.sort((int1, int2) -> {
+            return int1.compareTo(int2);
+        });
+        return allChapters.toArray();
     }
 
 }
