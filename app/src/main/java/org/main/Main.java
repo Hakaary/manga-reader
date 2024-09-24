@@ -15,7 +15,12 @@ public class Main {
         final AppFrame appFrame = new AppFrame(pageManager);
 
         appFrame.setVisible(true);
-        appFrame.setTxtChapter(pageManager.getCurrentChapter());
+        for (Object chapter : pageManager.getAllChapters()) {
+            appFrame.setNewChapter((Integer) chapter);
+        }
+        appFrame.setCurrentChapter(
+            (Integer) pageManager.getAllChapters()[0], true
+        );
         appFrame.setTxtPage(
                 pageManager.getCurrentPageIdx() + 1,
                 pageManager.getNumPagesCurrentChapter()
