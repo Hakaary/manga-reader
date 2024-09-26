@@ -5,6 +5,8 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
@@ -70,6 +72,14 @@ public class AppImageDisplay {
         canvas.setBackground(Color.BLACK);
 
         imageDisplay.add(canvas, BorderLayout.CENTER);
+    }
+
+    public void addMouseListener(MouseAdapter mouseAdapter) {
+        canvas.addMouseListener(mouseAdapter);
+    }
+
+    public void addMouseMotionListener(MouseMotionListener mouseMotionListener) {
+        canvas.addMouseMotionListener(mouseMotionListener);
     }
 
     public JPanel getImageDisplay() {

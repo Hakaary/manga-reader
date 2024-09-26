@@ -1,7 +1,5 @@
 package org.gui;
 
-import java.awt.Color;
-
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -23,7 +21,7 @@ class AppNavbar {
 
     public AppNavbar() {
         navbarPanel = new JPanel();
-        navbarPanel.setBackground(Color.GRAY);
+        // navbarPanel.setBackground(Color.GRAY);
 
         txtChapter = new JLabel("Chapter:");
         cbChapter = new JComboBox();
