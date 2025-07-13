@@ -26,7 +26,7 @@ public class AppFrame extends JFrame {
 
     private Point initialClick;
 
-    public AppFrame() {
+    public AppFrame(boolean buttonsOnDisplay) {
         super();
         FlatDarculaLaf.setup();
 
@@ -35,7 +35,7 @@ public class AppFrame extends JFrame {
 
         setUndecorated(true);
 
-        imageDisplay = new AppImageDisplay();
+        imageDisplay = new AppImageDisplay(buttonsOnDisplay);
         navbar = new AppNavbar();
 
         add(imageDisplay.getImageDisplay(), BorderLayout.CENTER);
@@ -131,7 +131,7 @@ public class AppFrame extends JFrame {
             System.exit(0);
         });
 
-        // Previous button
+        // Navbar previous button
         navbar.setButtonPreviousFunc(() -> {
             PageManager.setPrevPage();
             setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
@@ -142,8 +142,30 @@ public class AppFrame extends JFrame {
             setCurrentImage();
         });
 
-        // Next button
+        // Navbar next button
         navbar.setButtonNextFunc(() -> {
+            PageManager.setNextPage();
+            setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+            setTxtPage(
+                    PageManager.getCurrentPageIdx() + 1,
+                    PageManager.getNumPagesCurrentChapter()
+            );
+            setCurrentImage();
+        });
+
+        // Navbar previous button
+        imageDisplay.setButtonPreviousOnDispFunc(() -> {
+            PageManager.setPrevPage();
+            setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+            setTxtPage(
+                    PageManager.getCurrentPageIdx() + 1,
+                    PageManager.getNumPagesCurrentChapter()
+            );
+            setCurrentImage();
+        });
+
+        // Navbar next button
+        imageDisplay.setButtonNextOnDispFunc(() -> {
             PageManager.setNextPage();
             setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
             setTxtPage(

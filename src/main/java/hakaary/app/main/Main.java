@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        if (args.length > 0 && args[0].equals(".")) {
+        if (args.length > 0 && args[0].equals(".") || args.length == 0) {
             currentDir = System.getProperty("user.dir");
         }
 
@@ -29,7 +29,7 @@ public class Main {
 
         PageManager.loadPageManager(dir);
 
-        final AppFrame appFrame = new AppFrame();
+        final AppFrame appFrame = new AppFrame(true);
 
         appFrame.setVisible(true);
         for (Object chapter

@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
+import javax.swing.JButton;
 
 public class AppImageDisplay {
 
@@ -65,13 +66,26 @@ public class AppImageDisplay {
     private final JPanel imageDisplay;
     private final AppImageDisplayCanvas canvas;
 
-    public AppImageDisplay() {
+    private final JButton buttonPreviousOnDisplay;
+    private final JButton buttonNextOnDisplay;
+
+    public AppImageDisplay(boolean buttonsOnDisplay) {
         imageDisplay = new JPanel(new BorderLayout());
 
         canvas = new AppImageDisplayCanvas();
         canvas.setBackground(Color.BLACK);
 
+        buttonPreviousOnDisplay = new JButton("<");
+        buttonNextOnDisplay = new JButton(">");
+
+        if (!buttonsOnDisplay) {
+            buttonPreviousOnDisplay.setVisible(false);
+            buttonNextOnDisplay.setVisible(false);
+        }
+
         imageDisplay.add(canvas, BorderLayout.CENTER);
+        imageDisplay.add(buttonPreviousOnDisplay, BorderLayout.WEST);
+        imageDisplay.add(buttonNextOnDisplay, BorderLayout.EAST);
     }
 
     public void addMouseListener(MouseAdapter mouseAdapter) {
@@ -92,6 +106,18 @@ public class AppImageDisplay {
 
     public void renderCurrentImage() {
         canvas.drawImage();
+    }
+
+    public void setButtonPreviousOnDispFunc(Runnable function) {
+        buttonPreviousOnDisplay.addActionListener(
+                e -> function.run()
+        );
+    }
+
+    public void setButtonNextOnDispFunc(Runnable function) {
+        buttonNextOnDisplay.addActionListener(
+                e -> function.run()
+        );
     }
 
 }
