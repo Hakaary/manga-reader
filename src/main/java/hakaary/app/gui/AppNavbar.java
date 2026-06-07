@@ -1,9 +1,14 @@
 package hakaary.app.gui;
 
-import javax.swing.JPanel;
+import java.util.function.IntConsumer;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeListener;
+import java.awt.BorderLayout;
 
 class AppNavbar {
 
@@ -19,10 +24,17 @@ class AppNavbar {
     private final JButton buttonPrevious;
     private final JButton buttonNext;
 
-    public AppNavbar() {
-        navbarPanel = new JPanel();
-        // navbarPanel.setBackground(Color.GRAY);
+    private final JSlider pageSlider;
+    private boolean runSliderFunc = true;
+    private ChangeListener sliderChangeListener;
 
+    public AppNavbar() {
+        navbarPanel = new JPanel(new BorderLayout());
+
+        pageSlider = new JSlider(1, 1, 1);
+        pageSlider.setFocusable(false);
+
+        JPanel controlsPanel = new JPanel();
         txtChapter = new JLabel("Chapter:");
         cbChapter = new JComboBox<Integer>();
         runCbChapterFunc = true;
@@ -32,12 +44,15 @@ class AppNavbar {
         buttonPrevious = new JButton("< Prev");
         buttonNext = new JButton("Next >");
 
-        navbarPanel.add(txtChapter);
-        navbarPanel.add(cbChapter);
-        navbarPanel.add(buttonClose);
-        navbarPanel.add(buttonPrevious);
-        navbarPanel.add(buttonNext);
-        navbarPanel.add(txtPage);
+        controlsPanel.add(txtChapter);
+        controlsPanel.add(cbChapter);
+        controlsPanel.add(buttonClose);
+        controlsPanel.add(buttonPrevious);
+        controlsPanel.add(buttonNext);
+        controlsPanel.add(txtPage);
+
+        navbarPanel.add(pageSlider, BorderLayout.NORTH);
+        navbarPanel.add(controlsPanel, BorderLayout.CENTER);
     }
 
     public JPanel getNavbarPanel() {
@@ -50,6 +65,11 @@ class AppNavbar {
 
     public void setTxtPage(int page, int totalPages) {
         txtPage.setText(page + "/" + totalPages);
+
+        runSliderFunc = false;
+        pageSlider.setMaximum(totalPages);
+        pageSlider.setValue(page);
+        runSliderFunc = true;
     }
 
     public void setCurrentChapterCbBox(int chapter, boolean triggerFunc) {
@@ -63,31 +83,33 @@ class AppNavbar {
     }
 
     public void setCbChapterFunc(Runnable function) {
-        cbChapter.addItemListener(
-                e -> {
-                    if (runCbChapterFunc) {
-                        function.run();
-                    }
-                }
-        );
+        cbChapter.addItemListener(e -> {
+            if (runCbChapterFunc) {
+                function.run();
+            }
+        });
+    }
+
+    // Callback receives 0-based page index
+    public void setSliderPageFunc(IntConsumer function) {
+        sliderChangeListener = e -> {
+            if (runSliderFunc && !pageSlider.getValueIsAdjusting()) {
+                function.accept(pageSlider.getValue() - 1);
+            }
+        };
+        pageSlider.addChangeListener(sliderChangeListener);
     }
 
     public void setButtonCloseFunc(Runnable function) {
-        buttonClose.addActionListener(
-                e -> function.run()
-        );
+        buttonClose.addActionListener(e -> function.run());
     }
 
     public void setButtonPreviousFunc(Runnable function) {
-        buttonPrevious.addActionListener(
-                e -> function.run()
-        );
+        buttonPrevious.addActionListener(e -> function.run());
     }
 
     public void setButtonNextFunc(Runnable function) {
-        buttonNext.addActionListener(
-                e -> function.run()
-        );
+        buttonNext.addActionListener(e -> function.run());
     }
 
 }

@@ -29,7 +29,7 @@ public class Main {
 
         PageManager.loadPageManager(dir);
 
-        final AppFrame appFrame = new AppFrame(true);
+        final AppFrame appFrame = new AppFrame();
 
         appFrame.setVisible(true);
         for (Object chapter
@@ -45,5 +45,6 @@ public class Main {
                 PageManager.getNumPagesCurrentChapter()
         );
         appFrame.setCurrentImage();
+        PageManager.prefetchAdjacent();
     }
 }

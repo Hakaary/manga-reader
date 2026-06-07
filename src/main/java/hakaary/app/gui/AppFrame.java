@@ -8,7 +8,11 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
+import javax.swing.Timer;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
 
@@ -26,7 +30,7 @@ public class AppFrame extends JFrame {
 
     private Point initialClick;
 
-    public AppFrame(boolean buttonsOnDisplay) {
+    public AppFrame() {
         super();
         FlatDarculaLaf.setup();
 
@@ -35,7 +39,7 @@ public class AppFrame extends JFrame {
 
         setUndecorated(true);
 
-        imageDisplay = new AppImageDisplay(buttonsOnDisplay);
+        imageDisplay = new AppImageDisplay();
         navbar = new AppNavbar();
 
         add(imageDisplay.getImageDisplay(), BorderLayout.CENTER);
@@ -114,15 +118,25 @@ public class AppFrame extends JFrame {
     private void setFuncs() {
         // Set the current chapter from PageManager
         navbar.setCbChapterFunc(() -> {
-            PageManager.setCurrentChapter(
-                    getCurrentSelectedChapter()
-            );
-            PageManager.setCurrentPageIdx(0);
+            PageManager.setCurrentChapter(getCurrentSelectedChapter());
             setTxtPage(
                     PageManager.getCurrentPageIdx() + 1,
                     PageManager.getNumPagesCurrentChapter()
             );
             setCurrentImage();
+            PageManager.prefetchAdjacent();
+        });
+
+        // Page slider
+        navbar.setSliderPageFunc(pageIdx -> {
+            PageManager.jumpToPage(pageIdx);
+            setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+            setTxtPage(
+                    PageManager.getCurrentPageIdx() + 1,
+                    PageManager.getNumPagesCurrentChapter()
+            );
+            setCurrentImage();
+            PageManager.prefetchAdjacent();
         });
 
         // Close button
@@ -140,6 +154,7 @@ public class AppFrame extends JFrame {
                     PageManager.getNumPagesCurrentChapter()
             );
             setCurrentImage();
+            PageManager.prefetchAdjacent();
         });
 
         // Navbar next button
@@ -151,31 +166,59 @@ public class AppFrame extends JFrame {
                     PageManager.getNumPagesCurrentChapter()
             );
             setCurrentImage();
+            PageManager.prefetchAdjacent();
         });
 
-        // Navbar previous button
-        imageDisplay.setButtonPreviousOnDispFunc(() -> {
-            PageManager.setPrevPage();
+        // Keyboard navigation: n = prev, m = next, f = fullscreen
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke('n'), "prevPage");
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke('m'), "nextPage");
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke('f'), "toggleFullscreen");
+
+        getRootPane().getActionMap().put("prevPage", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                PageManager.setPrevPage();
+                setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+                setTxtPage(PageManager.getCurrentPageIdx() + 1,
+                        PageManager.getNumPagesCurrentChapter());
+                setCurrentImage();
+                PageManager.prefetchAdjacent();
+            }
+        });
+        getRootPane().getActionMap().put("nextPage", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                PageManager.setNextPage();
+                setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+                setTxtPage(PageManager.getCurrentPageIdx() + 1,
+                        PageManager.getNumPagesCurrentChapter());
+                setCurrentImage();
+                PageManager.prefetchAdjacent();
+            }
+        });
+        getRootPane().getActionMap().put("toggleFullscreen", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                toggleFullscreen();
+            }
+        });
+
+        // Scroll navigation: scroll down = next, scroll up = prev
+        imageDisplay.setScrollPageFunc(isNext -> {
+            if (isNext) PageManager.setNextPage(); else PageManager.setPrevPage();
             setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
-            setTxtPage(
-                    PageManager.getCurrentPageIdx() + 1,
-                    PageManager.getNumPagesCurrentChapter()
-            );
+            setTxtPage(PageManager.getCurrentPageIdx() + 1,
+                    PageManager.getNumPagesCurrentChapter());
             setCurrentImage();
+            PageManager.prefetchAdjacent();
         });
 
-        // Navbar next button
-        imageDisplay.setButtonNextOnDispFunc(() -> {
-            PageManager.setNextPage();
-            setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
-            setTxtPage(
-                    PageManager.getCurrentPageIdx() + 1,
-                    PageManager.getNumPagesCurrentChapter()
-            );
-            setCurrentImage();
-        });
+        // Click navigation + fullscreen toggle
+        final Timer[] singleClickTimer = {null};
 
-        // Fullscreen toggle
         imageDisplay.addMouseListener(
                 new MouseAdapter() {
             @Override
@@ -186,8 +229,34 @@ public class AppFrame extends JFrame {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                if (e.getButton() != MouseEvent.BUTTON1) return;
+
+                if (e.getClickCount() == 2) {
+                    if (singleClickTimer[0] != null) {
+                        singleClickTimer[0].stop();
+                        singleClickTimer[0] = null;
+                    }
                     toggleFullscreen();
+                } else if (e.getClickCount() == 1) {
+                    boolean isRightSide = e.getX() >= e.getComponent().getWidth() / 2;
+
+                    singleClickTimer[0] = new Timer(250, evt -> {
+                        singleClickTimer[0] = null;
+                        if (isRightSide) {
+                            PageManager.setNextPage();
+                        } else {
+                            PageManager.setPrevPage();
+                        }
+                        setCurrentChapterCbBox(PageManager.getCurrentChapter(), false);
+                        setTxtPage(
+                                PageManager.getCurrentPageIdx() + 1,
+                                PageManager.getNumPagesCurrentChapter()
+                        );
+                        setCurrentImage();
+                        PageManager.prefetchAdjacent();
+                    });
+                    singleClickTimer[0].setRepeats(false);
+                    singleClickTimer[0].start();
                 }
             }
         });
